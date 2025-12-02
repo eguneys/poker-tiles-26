@@ -1,7 +1,7 @@
 import { AnimChannel } from "./anim";
 import { cx, drag } from "./canvas"
 import type { SceneName } from "./main"
-import { box_intersect, type Rect } from "./math/rect";
+import { box_intersect, box_intersect_ratio, type Rect } from "./math/rect";
 import { sub, vec2, type Vec2 } from "./math/vec2";
 import { colors } from "./pico_colors";
 
@@ -47,6 +47,9 @@ let channels: Record<string, AnimChannel> = {
 }
 
 
+let a_color_channel = new AnimChannel(0)
+
+
 let drag_channels: Record<string, { x: AnimChannel, y: AnimChannel }> = {
     a: {
         x: new AnimChannel(),
@@ -89,6 +92,12 @@ const conveyor2_box: Rect = {
 const conveyor3_box: Rect = {
     xy: vec2(1550, 700),
     wh: vec2(280, 280)
+}
+
+
+const red1_box: Rect = {
+    xy: vec2(1200, 110),
+    wh: vec2(80, 80)
 }
 
 export function _update(delta: number) {
@@ -211,6 +220,15 @@ export function _update(delta: number) {
     }
 
 
+    let a = a_box()
+    if (a_hits_red(a)) {
+        a_color_channel.springTo(80)
+    } else {
+        a_color_channel.springTo(0)
+    }
+
+
+    a_color_channel.update(delta / 1000)
     for (let key of Object.keys(channels)) {
         channels[key].update(delta / 1000)
     }
@@ -224,10 +242,22 @@ export function _update(delta: number) {
 
 }
 
+function a_box(): Rect {
+    let x = drag_channels.a.x.value
+    let y = drag_channels.a.y.value
+    return {
+        xy: vec2(x + 1600, y + 140),
+        wh: vec2(80, 80)
+    }
+}
+
 function cursor_hits_box(box: Rect) {
     return box_intersect(cursor, box)
 }
 
+function a_hits_red(box: Rect) {
+    return box_intersect_ratio(red1_box, box) > 0.5
+}
 
 export function _render() {
 
@@ -275,11 +305,16 @@ export function _render() {
         colors.yellow, 
         colors.sand,
     ]
+
+    cx.lineWidth = 8
     for (let i = 0; i < cc.length; i++) {
-        cx.fillStyle = cc[i]
+        cx.strokeStyle = cc[i]
         cx.beginPath()
         cx.roundRect(100, 100 + i * 100, 80, 80, 10)
+
+
         cx.roundRect(200, 100 + i * 100, 80, 80, 10)
+
 
         if (i === 0) {
             cx.roundRect(100, 580, 80, 80, 10)
@@ -295,7 +330,20 @@ export function _render() {
             cx.roundRect(200, 880, 80, 80, 10)
         }
 
+        cx.stroke()
+    }
+
+    for (let i = 0; i < cc.length; i++) {
+        cx.fillStyle = cc[i]
+        cx.beginPath()
+        cx.moveTo(100 + 40, 100 + i * 100 + 40)
+        cx.arc(100 + 40, 100 + i * 100 + 40, 16, 0, Math.PI * 2)
+
+        cx.moveTo(200 + 40, 100 + i * 100 + 40)
+        cx.arc(200 + 40, 100 + i * 100 + 40, 16, 0, Math.PI * 2)
+
         cx.fill()
+
     }
 
     cx.restore()
@@ -354,6 +402,21 @@ export function _render() {
     cx.stroke()
     cx.restore()
 
+
+    cx.save()
+    let a = a_box()
+    cx.translate(a.xy.x, a.xy.y)
+    cx.beginPath()
+    cx_box(channels.a.value)
+    cx.fill()
+    cx.clip()
+    cx.fillStyle = colors.red
+    cx.beginPath()
+    cx.arc(30, 30, Math.max(0, a_color_channel.value), 0, Math.PI * 2)
+    cx.fill()
+    cx.restore()
+
+
     cx.save()
     cx.translate(cursor.xy.x, cursor.xy.y)
 
@@ -369,10 +432,12 @@ export function _render() {
 
 
     if (COLLISIONS) {
+        hitbox_rect(a_box())
         hitbox_rect(conveyor1_box)
         hitbox_rect(conveyor2_box)
         hitbox_rect(conveyor3_box)
         hitbox_rect(cursor)
+        hitbox_rect(red1_box)
     }
 }
 
