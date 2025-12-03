@@ -502,34 +502,7 @@ export function _render() {
     cx.globalAlpha = 1
     cx.setLineDash([])
 
-
-    cx.strokeStyle = colors.purple
-    cx.beginPath()
-    cx.lineWidth = 7
-
-    cx.moveTo(1650, 30)
-    cx.lineTo(1650, 80)
-
-    gap = 25
-    cx.moveTo(1270, 30)
-    cx.lineTo(1270, 80)
-    cx.moveTo(1270 + gap, 30)
-    cx.lineTo(1270 + gap, 80)
-
-    cx.moveTo(550, 30)
-    cx.lineTo(550, 80)
-    cx.moveTo(550 + gap, 30)
-    cx.lineTo(550 + gap, 80)
-    cx.moveTo(550 + gap + gap, 30)
-    cx.lineTo(550 + gap + gap, 80)
-
-    cx.stroke()
-
-    cx.lineWidth = 2
-    cx.moveTo(0, 100)
-    cx.lineTo(1920, 100)
-    cx.stroke()
-
+    render_guides()
 
     if (cursor.drag) {
         shape(x + cursor.drag.channels.x.value, y + cursor.drag.channels.y.value, cursor.drag.shape, cursor.drag.slot)
@@ -541,6 +514,44 @@ export function _render() {
     render_debug()
 }
 
+function render_guides() {
+    cx.strokeStyle = colors.sand
+    cx.lineWidth = 7
+
+    cx.beginPath()
+    cx.moveTo(1650, 50)
+    cx.lineTo(1650, 80)
+
+    let gap = 25
+    cx.moveTo(1270, 30)
+    cx.lineTo(1270, 80)
+    cx.moveTo(1270 + gap, 40)
+    cx.lineTo(1270 + gap, 80)
+
+    cx.moveTo(550, 30)
+    cx.lineTo(550, 80)
+    cx.moveTo(550 + gap, 40)
+    cx.lineTo(550 + gap, 80)
+    cx.moveTo(550 + gap + gap, 50)
+    cx.lineTo(550 + gap + gap, 80)
+
+    cx.stroke()
+
+    cx.strokeStyle = colors.purple
+    cx.lineWidth = 2
+    cx.beginPath()
+    cx.moveTo(0, 100)
+    cx.lineTo(1920, 100)
+
+
+    cx.moveTo(1470, 450)
+    cx.lineTo(1470, 650)
+
+    cx.moveTo(1110, 450)
+    cx.lineTo(1110, 650)
+
+    cx.stroke()
+}
 
 function pallette_color(x: number, y: number, color: Color) {
 
