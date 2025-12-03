@@ -219,25 +219,29 @@ export function _update(delta: number) {
         cursor.follow.x.swayEnabled = false
         cursor.follow.y.swayEnabled = false
 
+
+        sway_channels[0].swayEnabled = false
+        sway_channels[1].swayEnabled = false
+        sway_channels[2].swayEnabled = false
+
+        sway_channels[0].springTo(0, { stiffness: 800, damping: 4 })
+        sway_channels[1].springTo(0, { stiffness: 800, damping: 3 })
+        sway_channels[2].springTo(0, { stiffness: 800, damping: 2 })
     } else {
 
         if (cursor.drag === undefined) {
-            
+            sway_channels[0].swayEnabled = true
+            sway_channels[1].swayEnabled = true
+            sway_channels[2].swayEnabled = true
+
+            sway_channels[0].hold()
+            sway_channels[1].hold()
+            sway_channels[2].hold()
         }
-
-
     }
 
     if (drag.is_just_down) {
         if (slotA_hit) {
-
-            sway_channels[0].swayEnabled = false
-            sway_channels[1].swayEnabled = false
-            sway_channels[2].swayEnabled = false
-            sway_channels[0].springTo(0, { stiffness: 800, damping: 4 })
-            sway_channels[1].springTo(0, { stiffness: 800, damping: 3 })
-            sway_channels[2].springTo(0, { stiffness: 800, damping: 2 })
-
 
             drag_channels.a.x.springTo(-15, {stiffness: 400, damping: 8})
             drag_channels.a.y.springTo(-10, {stiffness: 400, damping: 2})
@@ -252,15 +256,6 @@ export function _update(delta: number) {
         }
         if (slotB_hit) {
 
-            sway_channels[0].swayEnabled = false
-            sway_channels[1].swayEnabled = false
-            sway_channels[2].swayEnabled = false
-            sway_channels[0].springTo(0, { stiffness: 800, damping: 4 })
-            sway_channels[1].springTo(0, { stiffness: 800, damping: 3 })
-            sway_channels[2].springTo(0, { stiffness: 800, damping: 2 })
-
-
-
             drag_channels.b.x.springTo(-15, { stiffness: 400, damping: 8 })
             drag_channels.b.y.springTo(-10 + 300 * 1, { stiffness: 400, damping: 2 })
             cursor.drag = { 
@@ -272,15 +267,6 @@ export function _update(delta: number) {
             }
         }
         if (slotC_hit) {
-
-            sway_channels[0].swayEnabled = false
-            sway_channels[1].swayEnabled = false
-            sway_channels[2].swayEnabled = false
-            sway_channels[0].springTo(0, { stiffness: 800, damping: 4 })
-            sway_channels[1].springTo(0, { stiffness: 800, damping: 3 })
-            sway_channels[2].springTo(0, { stiffness: 800, damping: 2 })
-
-
 
             drag_channels.c.x.springTo(-15, { stiffness: 400, damping: 8 })
             drag_channels.c.y.springTo(-10 + 300 * 2, { stiffness: 400, damping: 2 })
