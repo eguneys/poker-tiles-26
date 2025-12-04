@@ -472,7 +472,7 @@ function update_grid(delta: number) {
                 grid: for (let i = 0; i < 8; i++) {
                     for (let j = 0; j < 8; j++) {
                         if (box_intersect_ratio(shape_boxes[cursor.drag.slot][0], grid_color_boxes[i][j]) > 0.3) {
-                            let shape_ij = Utils.ij(cursor.drag.shape, i, j)
+                            let shape_ij = Utils.grid_ij(cursor.drag.shape, i, j)
                             if (shape_ij === null) {
                                 break grid
                             }
@@ -483,19 +483,32 @@ function update_grid(delta: number) {
                     }
                 }
 
-                out: for (let i = 0; i < 8; i++) {
-                    for (let j = 0; j < 8; j++) {
-                        if (matched_ij && matched_ij.find(_ => _[0] === i && _[1] === j)) {
-                            if (grid_cell_locked_colors[i][j] !== null) {
-                                matched_ij = undefined
-                                break out
-                            }
+                let i_cell = 0
+                if (matched_ij) {
+                    for (let [i, j] of matched_ij) {
+                        let shape_color = shape_i_cell(cursor.drag.shape, i_cell++)
+                        let grid_color = grid_cell_locked_colors[i][j]
+
+                        let can_place = true
+
+                        if (shape_color === 'empty' && grid_color === null) {
+                            can_place = false
+                        }
+                        if (shape_color !== 'empty' && grid_color !== null) {
+                            can_place = false
+                        }
+                        if (shape_color === grid_color) {
+                            can_place = true
+                        }
+
+                        if (!can_place) {
+                            matched_ij = undefined
+                            break
                         }
                     }
                 }
 
-
-                let i_cell = 0
+                i_cell = 0
                 for (let i = 0; i < 8; i++) {
                     for (let j = 0; j < 8; j++) {
                         if (matched_ij && matched_ij.find(_ => _[0] === i && _[1] === j)) {
@@ -516,7 +529,8 @@ function update_grid(delta: number) {
                 for (let i = 0; i < 8; i++) {
                     for (let j = 0; j < 8; j++) {
                         if (grid_cell_colors[i][j] !== grid_cell_locked_colors[i][j]) {
-                            grid_cell_locked_colors[i][j] = grid_cell_colors[i][j]
+                            let grid_color = grid_cell_colors[i][j]
+                            grid_cell_locked_colors[i][j] = grid_color === 'empty' ? null : grid_color
                             grid_cell_colors[i][j] = null
                             has_placed_on_grid = true
                         }

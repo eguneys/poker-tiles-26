@@ -51,8 +51,21 @@ export class Utils {
     return out;
   }
 
+  static ij(shape: Shape): [number, number][] {
+    let res: [number, number][] = []
 
-  static ij(shape: Shape, gridX: number, gridY: number): [number, number][] | null {
+    for (let i = 0; i < 2; i++) {
+      for (let j = 0; j < 2; j++) {
+        if (shape[i][j] === null) {
+          continue
+        }
+        res.push([i, j])
+      }
+    }
+    return res
+  }
+
+  static grid_ij(shape: Shape, gridX: number, gridY: number): [number, number][] | null {
     let res: [number, number][] = []
 
     let off_xy
