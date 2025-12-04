@@ -473,7 +473,6 @@ function update_grid(delta: number) {
                     for (let j = 0; j < 8; j++) {
                         if (box_intersect_ratio(shape_boxes[cursor.drag.slot][0], grid_color_boxes[i][j]) > 0.3) {
                             let shape_ij = Utils.ij(cursor.drag.shape, i, j)
-                            console.log(i, j, shape_ij)
                             if (shape_ij === null) {
                                 break grid
                             }
@@ -483,6 +482,18 @@ function update_grid(delta: number) {
                         }
                     }
                 }
+
+                out: for (let i = 0; i < 8; i++) {
+                    for (let j = 0; j < 8; j++) {
+                        if (matched_ij && matched_ij.find(_ => _[0] === i && _[1] === j)) {
+                            if (grid_cell_locked_colors[i][j] !== null) {
+                                matched_ij = undefined
+                                break out
+                            }
+                        }
+                    }
+                }
+
 
                 let i_cell = 0
                 for (let i = 0; i < 8; i++) {
@@ -504,7 +515,7 @@ function update_grid(delta: number) {
                 let has_placed_on_grid = false
                 for (let i = 0; i < 8; i++) {
                     for (let j = 0; j < 8; j++) {
-                        if (grid_cell_colors[i][j] !== null) {
+                        if (grid_cell_colors[i][j] !== grid_cell_locked_colors[i][j]) {
                             grid_cell_locked_colors[i][j] = grid_cell_colors[i][j]
                             grid_cell_colors[i][j] = null
                             has_placed_on_grid = true
