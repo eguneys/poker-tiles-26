@@ -40,8 +40,8 @@ const palletteB_box = {
 }
 
 
-const palletteA_color_boxes = fill_color_boxes(palletteA_box)
-const palletteB_color_boxes = fill_color_boxes(palletteB_box)
+const palletteA_color_boxes = fill_palette_boxes(palletteA_box)
+const palletteB_color_boxes = fill_palette_boxes(palletteB_box)
 
 let shape_boxes: Record<Slot, Rect[]>
 
@@ -188,16 +188,17 @@ export function _init() {
         ['red', 'red'],
         ['green', 'green'],
         ['yellow', 'yellow'],
-        ['white', 'white'],
     ])
 
 
     palette_b = new Palette(2, 4, [
         ['red', 'green'],
+        ['yellow', 'yellow'],
         ['red', 'green'],
-        ['yellow', 'white'],
-        ['yellow', 'white'],
     ])
+
+
+
 }
 
 export function _update(delta: number) {
@@ -347,7 +348,7 @@ export function _update(delta: number) {
                 let is_on_a_color = false
                 let i_pslot = -1
                 for (let pi = 0; pi < 2; pi++) {
-                    for (let pj = 0; pj < 4; pj++) {
+                    for (let pj = 0; pj < 3; pj++) {
 
                         let pbox = palletteA_color_boxes[++i_pslot]
                         let p_color = palette_a.cells[pj][pi]
@@ -619,7 +620,7 @@ export function _render() {
     gap = 450
 
     for (let i = 0; i < 2; i++) {
-        for (let j = 0; j < 4; j++) {
+        for (let j = 0; j < 3; j++) {
             pallette_color(x + i * 100, y + j * 100, pallette_color_to_pico(palette_a.cells[j][i]))
 
             pallette_color(x + i * 100, gap + y + j * 100, pallette_color_to_pico(palette_b.cells[j][i]))
@@ -953,10 +954,10 @@ function hitbox_rect(box: Rect) {
 }
 
 
-function fill_color_boxes(box: Rect) {
+function fill_palette_boxes(box: Rect) {
     let res: Rect[] = []
     for (let i = 0; i < 2; i++) {
-        for (let j = 0; j < 4; j++) {
+        for (let j = 0; j < 3; j++) {
             res.push({
                 xy: add(box.xy, vec2(i * 100, j * 100)),
                 wh: vec2(80, 80)
