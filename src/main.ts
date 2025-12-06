@@ -1,6 +1,6 @@
 import './style.css'
 import { Loop } from "./loop_input"
-import * as simulate from './simulation'
+import * as simulate from './simulation2'
 import { drag, init_canvas } from './canvas'
 
 

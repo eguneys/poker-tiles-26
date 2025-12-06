@@ -16,3 +16,17 @@ export const colors = {
     pink: '#FF77A8',
     sand: '#FFCCAA',
 }
+
+/* https://lospec.com/palette-list/cromatica */
+export const vibrant = {
+    white: '#fbf8fd',
+    light: '#a1a9d1',
+    blue: '#007fff',
+    darkblue: '#24256f',
+    black: '#141218',
+    purple: '#5f0e52',
+    red: '#fd1a43',
+    pink: '#ffb16c',
+    yellow: '#fede5b',
+    green: '#74ead6',
+}

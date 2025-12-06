@@ -938,7 +938,7 @@ function cx_box(x: number, y: number, theta: number) {
 }
 
 
-function hitbox_rect(box: Rect) {
+export function hitbox_rect(box: Rect) {
 
     cx.setLineDash([10])
     cx.lineWidth = 7

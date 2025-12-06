@@ -136,7 +136,7 @@ export class AnimChannel {
             case "follow": {
                 let { speed } = this.followConfig
                 const t = 1 - Math.pow(1 - speed, dt);
-                this.baseValue = this.baseValue + (this.followTarget - this.baseValue) * t;
+                this.baseValue += (this.followTarget - this.baseValue) * t;
                 break;
             }
         }
