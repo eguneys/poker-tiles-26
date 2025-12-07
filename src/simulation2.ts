@@ -7,7 +7,7 @@ import { hitbox_rect } from "./simulation"
 import type { Rect } from "./math/rect"
 import type { Square } from "./chess/types"
 import { squareFile, squareFromCoords, squareRank } from "./chess/util"
-import { board_aligns_data, find_align_direction, type AlignsData, type Board, type Direction, type Pieces } from "./aligns"
+import { board_aligns_data, fen_to_board, find_align_direction, type AlignsData, type Board, type Direction, type Pieces } from "./aligns"
 
 let COLLISIONS = false
 //COLLISIONS = true
@@ -68,7 +68,6 @@ type Aligns = {
     stick: Direction
 }
 
-
 function load_position(target: Board) {
     const random_square = () => Math.floor(Math.random() * 64)
 
@@ -108,12 +107,11 @@ function load_position(target: Board) {
 
 export function _init() {
 
-    let board = new Map<Pieces, Square>([
-        ['r1', 50],
-        ['r2', 10],
-        ['b2', 10]
-    ])
-    load_position(board)
+    load_position(fen_to_board('4k3/4b3/5pp1/3KP2p/1p5P/4B1P1/1P6/8 w - - 1 44'))
+    load_position(fen_to_board('4rk2/3q1p2/2pp1Ppp/p1p5/2P2bN1/1P2Q3/P4PPP/4RK2 w - - 2 28'))
+    //load_position(fen_to_board('r6K/8/8/8/8/8/8/8 w - - 0 1'))
+    //load_position(fen_to_board('8/8/8/3p4/3K4/4P3/8/8 w - - 0 1'))
+    //load_position(fen_to_board('8/8/8/8/3K4/5N2/8/8 w - - 0 1'))
 
     time = 0
     cursor = {
@@ -173,10 +171,11 @@ export function _update(delta: number) {
     }
 
     for (let align of model_aligns) {
-        update_align(align, delta)
+        let nb = model_aligns.filter(_ => _.stick === 0).indexOf(align)
+        update_align(align, nb, delta)
     }
     for (let align of model_mis_aligns) {
-        update_align(align, delta)
+        update_align(align, 0, delta)
     }
 
     if (drag.is_up) {
@@ -215,6 +214,12 @@ function update_aligns(delta: number) {
     for (let mcu of misaligns_data) {
 
         let e = mis_model.find(_ => _.data.x === mcu.x && _.data.y === mcu.y)
+        let stick = find_align_direction(mcu, board)
+
+        if (e) {
+            e.stick = stick
+        }
+
         if (!e) {
 
             mis_model.push({
@@ -263,11 +268,11 @@ function update_piece(piece: PieceOnBoard, delta: number) {
 }
 
 
-function update_align(align: Aligns, delta: number) {
+function update_align(align: Aligns, nb: number, delta: number) {
 
     if (align.stick === 0) {
-        let sin = Math.sin(time * 0.5 * Math.PI * 2) * 80
-        let cos = Math.cos(time * 0.5 * Math.PI * 2) * 80
+        let sin = Math.sin(time * 0.5 * Math.PI * 2 + nb * Math.PI * 0.25) * 80
+        let cos = Math.cos(time * 0.5 * Math.PI * 2 + nb * Math.PI * 0.25) * 80
 
         align.xy.x.followTo(cos, { speed: 1 - 0.001 })
         align.xy.y.followTo(sin, { speed: 1 - 0.001 })
@@ -345,25 +350,7 @@ function render_mis_aligns(x: number, y: number, pieces: Pieces, stick: Directio
     cx.fill()
 
 
-    if (pieces[0] === 'r') {
-        cx.strokeStyle = vibrant.white
-        cx.beginPath()
-        cx.moveTo(x - 10, y)
-        cx.lineTo(x + 10, y)
-        cx.moveTo(x, y - 10)
-        cx.lineTo(x, y + 10)
-        cx.stroke()
-    }
-
-    if (pieces[0] === 'b') {
-        cx.strokeStyle = vibrant.yellow
-        cx.beginPath()
-        cx.moveTo(x - 10, y - 10)
-        cx.lineTo(x + 10, y + 10)
-        cx.moveTo(x - 10, y + 10)
-        cx.lineTo(x + 10, y - 10)
-        cx.stroke()
-    }
+    render_mini_role(x, y, pieces)
 }
 
 
@@ -376,9 +363,16 @@ function render_aligns(x: number, y: number, pieces: Pieces, stick: Direction) {
     cx.stroke()
     cx.fill()
 
+    render_mini_role(x, y, pieces)
+}
+
+const yellow_colors = [vibrant.yellow, vibrant.white, vibrant.blue, vibrant.pink, vibrant.green, vibrant.light, vibrant.black,  vibrant.purple, vibrant.darkblue]
+
+function render_mini_role(x: number, y: number, pieces: Pieces) {
+
+    cx.strokeStyle = yellow_colors[parseInt(pieces[1]) - 1]
 
     if (pieces[0] === 'r') {
-        cx.strokeStyle = vibrant.white
         cx.beginPath()
         cx.moveTo(x - 10, y)
         cx.lineTo(x + 10, y)
@@ -388,7 +382,6 @@ function render_aligns(x: number, y: number, pieces: Pieces, stick: Direction) {
     }
 
     if (pieces[0] === 'b') {
-        cx.strokeStyle = vibrant.yellow
         cx.beginPath()
         cx.moveTo(x - 10, y - 10)
         cx.lineTo(x + 10, y + 10)
@@ -396,12 +389,58 @@ function render_aligns(x: number, y: number, pieces: Pieces, stick: Direction) {
         cx.lineTo(x + 10, y - 10)
         cx.stroke()
     }
+    if (pieces[0] === 'P') {
+        cx.beginPath()
+        cx.moveTo(x - 10, y - 10)
+        cx.lineTo(x, y)
+        cx.moveTo(x + 10, y - 10)
+        cx.lineTo(x, y)
+        cx.lineTo(x, y + 5)
+        cx.stroke()
+    }
+    if (pieces[0] === 'p') {
+        cx.beginPath()
+        cx.moveTo(x - 10, y + 10)
+        cx.lineTo(x, y)
+        cx.moveTo(x + 10, y + 10)
+        cx.lineTo(x, y)
+        cx.lineTo(x, y - 5)
+        cx.stroke()
+    }
+    if (pieces[0] === 'k') {
+        cx.beginPath()
+        cx.roundRect(x - 10, y - 10, 20, 20, 4)
+        cx.stroke()
+    }
+
+    if (pieces[0] === 'n') {
+        cx.beginPath()
+        cx.moveTo(x - 5, y - 10)
+        cx.lineTo(x - 5, y + 10)
+        cx.lineTo(x + 5, y + 10)
+        cx.stroke()
+    }
+    if (pieces[0] === 'q') {
+        cx.beginPath()
+        cx.moveTo(x - 10, y - 10)
+        cx.lineTo(x + 10, y + 10)
+        cx.moveTo(x - 10, y + 10)
+        cx.lineTo(x + 10, y - 10)
+        cx.moveTo(x - 12, y)
+        cx.lineTo(x + 12, y)
+        cx.moveTo(x, y - 12)
+        cx.lineTo(x, y + 12)
+        cx.stroke()
+    }
+
 }
 
 function render_role(x: number, y: number, pieces: Pieces) {
+
+    cx.strokeStyle = yellow_colors[parseInt(pieces[1]) - 1]
+    cx.lineWidth = 9
+
     if (pieces[0] === 'b') {
-        cx.lineWidth = 9
-        cx.strokeStyle = vibrant.yellow
         cx.beginPath()
         cx.moveTo(x - 20, y - 20)
         cx.lineTo(x + 20, y + 20)
@@ -410,13 +449,53 @@ function render_role(x: number, y: number, pieces: Pieces) {
         cx.stroke()
     }
     if (pieces[0] === 'r') {
-        cx.lineWidth = 9
-        cx.strokeStyle = vibrant.white
         cx.beginPath()
         cx.moveTo(x - 25, y)
         cx.lineTo(x + 25, y)
         cx.moveTo(x, y - 25)
         cx.lineTo(x, y + 25)
+        cx.stroke()
+    }
+    if (pieces[0] === 'P') {
+        cx.beginPath()
+        cx.moveTo(x - 20, y - 20)
+        cx.lineTo(x, y)
+        cx.moveTo(x + 20, y - 20)
+        cx.lineTo(x, y)
+        cx.lineTo(x, y + 10)
+        cx.stroke()
+    }
+    if (pieces[0] === 'p') {
+        cx.beginPath()
+        cx.moveTo(x - 20, y + 20)
+        cx.lineTo(x, y)
+        cx.moveTo(x + 20, y + 20)
+        cx.lineTo(x, y)
+        cx.lineTo(x, y - 10)
+        cx.stroke()
+    }
+    if (pieces[0] === 'k') {
+        cx.beginPath()
+        cx.roundRect(x - 27, y - 27, 54, 54, 10)
+        cx.stroke()
+    }
+    if (pieces[0] === 'n') {
+        cx.beginPath()
+        cx.moveTo(x - 10, y - 20)
+        cx.lineTo(x - 10, y + 20)
+        cx.lineTo(x + 10, y + 20)
+        cx.stroke()
+    }
+    if (pieces[0] === 'q') {
+        cx.beginPath()
+        cx.moveTo(x - 20, y - 20)
+        cx.lineTo(x + 20, y + 20)
+        cx.moveTo(x - 20, y + 20)
+        cx.lineTo(x + 20, y - 20)
+        cx.moveTo(x - 22, y)
+        cx.lineTo(x + 22, y)
+        cx.moveTo(x, y - 22)
+        cx.lineTo(x, y + 22)
         cx.stroke()
     }
 }
@@ -512,13 +591,24 @@ export function next_scene() {
 const stick_direction = [
     [0, 0],
     [1, 0],
-    [1, 1],
-    [0, 1],
-    [-1, 1],
-    [-1, 0],
-    [-1, -1],
-    [0, -1],
     [1, -1],
+    [0, -1],
+    [-1, -1],
+    [-1, 0],
+    [-1, 1],
+    [0, 1],
+    [1, 1],
+    [0, 0],
+
+    [0, 0],
+    [-1, 0.6], // 11
+    [-1, -0.6],
+    [1, 0.6],
+    [1, -0.6],
+    [-0.6, 1],
+    [-0.6, -1],
+    [0.6, 1],
+    [0.6, -1]
 ]
 
 
@@ -540,9 +630,11 @@ function fill_grid_square_boxes(grid_box: Rect): Rect[][] {
 
 function square_to_pos(sq: Square): Vec2 {
     let file = squareFile(sq)
-    let rank = squareRank(sq)
+    let rank = 7 - squareRank(sq)
     let ab = vec2((file / 8) * grid_box.wh.x, (rank / 8) * grid_box.wh.y)
-    return add(add(ab, grid_box.xy), mulScalar(grid_box.wh, 1/ 16))
+    let res = add(add(ab, grid_box.xy), mulScalar(grid_box.wh, 1 / 16))
+
+    return res
 }
 
 function pos_to_square(xy: Vec2): Square | undefined {
@@ -558,7 +650,7 @@ function pos_to_square(xy: Vec2): Square | undefined {
         return undefined
     }
     let file: File = x as File
-    let rank: Rank = y as Rank
+    let rank: Rank = 7 - y as Rank
 
     return squareFromCoords(file, rank)
 }
@@ -566,7 +658,7 @@ function pos_to_square(xy: Vec2): Square | undefined {
 function build_board_from_pieces() {
     let res: Board = new Map<Pieces, Square>()
     for (let pieces of pieces_on_board) {
-        if (pieces.sq) {
+        if (pieces.sq !== undefined) {
             res.set(pieces.pieces, pieces.sq)
         }
     }
