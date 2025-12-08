@@ -153,13 +153,22 @@ export function _update(delta: number) {
 
             let piece = pieces_on_board.find(_ => _.sq === cursor_sq)
                 if (piece) {
+                    piece.xy.x.springTo(piece.xy.x.value -10, { stiffness: 800, damping: 10 })
+                    piece.xy.y.springTo(piece.xy.y.value -15, { stiffness: 800, damping: 10 })
                     cursor.drag = {
-                        decay: sub(cursor.xy, { x: piece.xy.x.value, y: piece.xy.y.value }),
+                        decay: sub(cursor.xy, { x: piece.xy.x.value - 10, y: piece.xy.y.value - 15 }),
                         piece
                     }
+                    cursor.follow.x.swayEnabled = false
+                    cursor.follow.y.swayEnabled = false
                 }
 
         }
+    }
+
+    if (drag.is_up) {
+        cursor.follow.x.swayEnabled = true
+        cursor.follow.y.swayEnabled = true
     }
 
     for (let piece of pieces_on_board) {
