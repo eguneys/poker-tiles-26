@@ -1,0 +1,17 @@
+Thank you for trying this early prototype!
+You will see one single puzzle, based on an actual chess position.
+Please share your thoughts below:
+
+Overall, how enjoyable was the experience?
+Were you able to solve the puzzle?
+If yes: How challenging was it?
+If no: What was confusing or unclear?
+Please suggest:
+One feature you would like to see added, and
+One thing you think should be improved or changed.
+Would you be interested in solving a daily puzzle and competing on a leaderboard?
+
+Link:
+https://eguneys.github.io/poker-tiles-26/
+
+Thanks for your participation!
