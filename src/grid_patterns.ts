@@ -14,11 +14,24 @@ class GridPatterns {
     }
 
     // Checkerboard pattern
+    static checkerboard2(): Pattern {
+        const grid = GridPatterns.createEmptyGrid();
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                grid[row][col] = (row + col) % 2 === 1
+            }
+        }
+        return grid;
+    }
+
+
+
+    // Checkerboard pattern
     static checkerboard(): Pattern {
         const grid = GridPatterns.createEmptyGrid();
         for (let row = 0; row < 8; row++) {
             for (let col = 0; col < 8; col++) {
-                grid[row][col] = (row + col) % 2 === 0;
+                grid[row][col] = (row + col) % 2 === 0
             }
         }
         return grid;
@@ -267,6 +280,7 @@ class GridAnimations {
 export const Patterns = {
     'empty': GridPatterns.createEmptyGrid,
     'checkerboard': GridPatterns.checkerboard,
+    'checkerboard2': GridPatterns.checkerboard2,
     'full': GridPatterns.fullGrid,
     'border': GridPatterns.border,
     'diagonal': GridPatterns.diagonal,
@@ -288,6 +302,7 @@ export const Animations = {
 
 export const AnimationToFull = (p: Pattern) => GridAnimations.patternTransition(p, Patterns.full(), 8)
 export const AnimationToEmpty = (p: Pattern) => GridAnimations.patternTransition(p, Patterns.empty(), 8)
+export const AnimationCheckerboard = () => GridAnimations.patternTransition(Patterns.checkerboard(), Patterns.checkerboard2(), 8)
 
 
 export const AnimationsRandom = () => {

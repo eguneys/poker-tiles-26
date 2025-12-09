@@ -8,7 +8,7 @@ import type { Rect } from "./math/rect"
 import type { Square } from "./chess/types"
 import { squareFile, squareFromCoords, squareRank } from "./chess/util"
 import { board_aligns_data, fen_to_board, find_align_direction, type AlignsData, type Board, type Direction, type Pieces } from "./aligns"
-import { AnimationsRandom, AnimationToEmpty, Patterns, type AnimationStep as GridAnimationStep } from './grid_patterns'
+import { AnimationCheckerboard, Animations, AnimationsRandom, AnimationToEmpty, Patterns, type AnimationStep as GridAnimationStep } from './grid_patterns'
 
 let COLLISIONS = false
 //COLLISIONS = true
@@ -262,10 +262,12 @@ export function _update(delta: number) {
 
 function push_animation_frames() {
     grid_animation.frames = [
+        ...Animations.blink(Patterns.full()),
         ...AnimationsRandom(),
         ...AnimationsRandom(),
         ...AnimationsRandom(),
-        ...AnimationToEmpty(Patterns.full())
+        ...AnimationCheckerboard(),
+        ...Animations.pulse(Patterns.full()),
     ]
 }
 
@@ -509,7 +511,6 @@ function render_mini_role(x: number, y: number, pieces: Pieces) {
         batch.strokeLine(x - 8, y - 8, x + 8, y + 8, thick, color)
         batch.strokeLine(x - 8, y + 8, x + 8, y - 8, thick, color)
     }
-
 }
 
 function render_role(x: number, y: number, pieces: Pieces) {
