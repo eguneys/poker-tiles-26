@@ -1,6 +1,8 @@
-import { createMemo, createSelector, createSignal, type JSX, lazy, Show  } from 'solid-js'
+import { createMemo, createSelector, createSignal, ErrorBoundary, type JSX, lazy, Show, Suspense  } from 'solid-js'
 import { A, Route, Router, useLocation, useNavigate } from '@solidjs/router'
 import { TheGameBoard } from './TheGameBoard';
+import { type DifficultyTier, type PuzzleStats } from './state/types';
+import { MorStoreProvider, usePuzzles } from './state';
 
 const Legal = lazy(() => import("./Legal"));
 const About = lazy(() => import("./About"));
@@ -27,7 +29,9 @@ function Layout(props: { children?: JSX.Element }) {
         <div class="min-h-screen flex flex-col">
             <Navbar isMobileMenuOpen={isMobileMenuOpen()} setIsMobileMenuOpen={setIsMobileMenuOpen}/>
             <main class="grow max-w-6xl mx-auto w-full px-4 py-8 lg:py-12"  onClick={() => isMobileMenuOpen() && setIsMobileMenuOpen(false)}>
-                {props.children}
+                <MorStoreProvider>
+                    {props.children}
+                </MorStoreProvider>
             </main>
         </div>
     </>)
@@ -35,6 +39,20 @@ function Layout(props: { children?: JSX.Element }) {
 
 
 const Home = () => {
+
+    const [shuffle, set_shuffle] = createSignal(void 0, { equals: false })
+    const [reveal, set_reveal] = createSignal(void 0, { equals: false })
+
+    let s: PuzzleStats = { nb_steps: 0 }
+
+    const stats = createMemo(() => s!)
+
+    const [selected_tier, _set_selected_tier] = createSignal<DifficultyTier>('b')
+
+    const [puzzles] = usePuzzles()
+    const puzzle_set = createMemo(() => puzzles.daily_puzzle_set)
+    const puzzle = createMemo(() => puzzle_set()?.[selected_tier()])
+
     return (<>
         <div class="grid lg:grid-cols-12 gap-8 items-start">
 
@@ -43,47 +61,23 @@ const Home = () => {
                 <div
                 id="the-game-board"
                  class="relative w-full max-w-[600px] aspect-square shadow-2xl rounded-lg overflow-hidden border-4 border-slate-700">
-                    <TheGameBoard/>
+                    <ErrorBoundary fallback={""}>
+                        <Suspense>
+                            <TheGameBoard fen={puzzle()?.fen} shuffle={shuffle} reveal={reveal} />
+                        </Suspense>
+                    </ErrorBoundary>
                 </div>
             </div>
 
             {/* Right Column: Info & Controls */}
             <div class="lg:col-span-5 xl:col-span-4 space-y-6">
-
-                {/* Puzzle Info Card */}
                 <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="px-2 py-1 bg-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-400 rounded">
-                            {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
-                        </span>
-                        <span class={`px-2 py-1 text-xs font-bold rounded ${'bg-green-500/20 text-green-400'}`}>
-                            {'Easy'}
-                        </span>
-                    </div>
-
-                    <h1 class="text-2xl font-bold text-white mb-2">{'puzzle.title'}</h1>
-                    <p class="text-slate-400 mb-6 leading-relaxed">
-                        {'puzzle.description'}
-                    </p>
-
-                    <div class="flex items-center gap-3 p-4 bg-slate-950/50 rounded-lg border border-slate-800 mb-6">
-                        <div class={`w-3 h-3 rounded-full ${'bg-slate-600 border border-slate-400'}`}></div>
-                        <span class="font-semibold text-slate-200">
-                            {"White to Move"}
-                        </span>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div class="grid grid-cols-2 gap-3">
-                        <button
-                            class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg font-medium transition-colors border border-slate-700"
-                        >
-                            Reset Board
-                        </button>
-                        <button class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg font-medium transition-colors border border-slate-700 opacity-50 cursor-not-allowed">
-                            Hint
-                        </button>
-                    </div>
+                    <ErrorBoundary fallback={FailedPuzzleInfoCard}>
+                        <Suspense>
+                            <PuzzleInfoCard stats={stats()} selected_tier={selected_tier()} />
+                            <ActionButtons on_shuffle={set_shuffle} on_reveal={set_reveal}/>
+                        </Suspense>
+                    </ErrorBoundary>
                 </div>
 
                 <StatsExtra />
@@ -105,6 +99,77 @@ const Home = () => {
             </div>
         </div>
     </>)
+}
+
+const ActionButtons = (props: { on_reveal: () => void, on_shuffle: () => void }) => {
+    return (<>
+        <div class="grid grid-cols-2 gap-3">
+            <button
+            onClick={() => props.on_shuffle()}
+                class="cursor-pointer px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg font-medium transition-colors border border-slate-700"
+            >
+                Shuffle Board
+            </button>
+            <button 
+            onClick={() => props.on_reveal()}
+            class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg font-medium transition-colors border border-slate-700 opacity-50 cursor-not-allowed">
+                Reveal Solution
+            </button>
+        </div>
+    </>)
+}
+
+const FailedPuzzleInfoCard = () => {
+    return (<>
+        <div class="flex items-center justify-between">
+            <span class='text-red-500'>Failed Loading Daily Puzzle.</span>
+            <button
+            onClick={() => location.reload()}
+                class="cursor-pointer px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg font-medium transition-colors border border-slate-700"
+            >
+                Refresh Page
+            </button>
+        </div>
+    </>)
+}
+
+const PuzzleInfoCard = (props: { stats: PuzzleStats, selected_tier: DifficultyTier }) => {
+
+    const selected_tier = createMemo(() => props.selected_tier)
+
+    const difficulty_texts = { a: 'Easy', b: 'Medium', c: 'Hard'}
+
+    const difficulty_text = createMemo(() => difficulty_texts[selected_tier()])
+
+    const [puzzles] = usePuzzles()
+
+
+    const todays_date = createMemo(() => puzzles.today)
+    const date_locale_string = createMemo(() => todays_date()?.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }))
+
+    return (<>
+            <div class="flex items-center justify-between mb-4">
+                <span class="px-2 py-1 bg-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-400 rounded">
+                    {date_locale_string()}
+                </span>
+                <span class={`px-2 py-1 text-xs font-bold rounded ${'bg-green-500/20 text-green-400'}`}>
+                    {difficulty_text()}
+                </span>
+            </div>
+
+            <h1 class="text-2xl font-bold text-white mb-2">{'puzzle.title'}</h1>
+            <p class="text-slate-400 mb-6 leading-relaxed">
+                {'puzzle.description'}
+            </p>
+
+            <div class="flex items-center gap-3 p-4 bg-slate-950/50 rounded-lg border border-slate-800 mb-6">
+                <span class="font-semibold text-slate-400">
+                    Distance Traveled: 
+                </span>
+                <span class="font-bold text-xl text-slate-200">{props.stats.nb_steps}</span>
+            </div>
+
+        </>)
 }
 
 export type Navigation = 'home' | 'about' | 'legal'
@@ -150,7 +215,7 @@ const Navbar = (props: { isMobileMenuOpen: boolean, setIsMobileMenuOpen: (v: boo
                     <A href="/" class="text-xl font-bold tracking-tight text-white">Mor Chess 3 {dev()}</A>
                 </div>
                 <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-400">
-                    <A href="/" class={`${active_link('home')} hover:text-indigo-400 transition-colors`}>Daily Puzzle</A>
+                    <A href="/" class={`${active_link('home')} hover:text-indigo-400 transition-colors`}>Puzzles</A>
                     <A href="/about" class={`${active_link('about')} hover:text-indigo-400 transition-colors`}>About</A>
                 </div>
                 {/* Mobile Menu Button */}
@@ -173,7 +238,7 @@ const Navbar = (props: { isMobileMenuOpen: boolean, setIsMobileMenuOpen: (v: boo
                             onClick={() => navigateAndClose('/')}
                             class={`text-left px-4 py-3 rounded-lg text-sm font-medium ${home_color()}`}
                         >
-                            Daily Puzzle
+                            Puzzles
                         </button>
                         <button
                             onClick={() => navigateAndClose('/about')}

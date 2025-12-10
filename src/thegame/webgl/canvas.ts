@@ -1,4 +1,3 @@
-/* @refresh reload */
 import { DragHandler } from "../drag"
 import { BatchRenderer } from "./BatchRenderer"
 import { Renderer } from "./renderer"

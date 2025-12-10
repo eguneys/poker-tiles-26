@@ -7,7 +7,7 @@ import { colors, vibrant } from './colors_in_gl'
 import type { Rect } from "./math/rect"
 import type { Square } from "./chess/types"
 import { squareFile, squareFromCoords, squareRank } from "./chess/util"
-import { board_aligns_data, fen_to_board, find_align_direction, type AlignsData, type Board, type Direction, type Pieces } from "./aligns"
+import { board_aligns_data, fen_to_board, find_align_direction, type AlignsData, type Board, type Direction, type FEN, type Pieces } from "./aligns"
 import { AnimationCheckerboard, Animations, AnimationsRandom, Patterns, type AnimationStep as GridAnimationStep } from './grid_patterns'
 
 let DEBUG_END = false
@@ -71,10 +71,7 @@ type Aligns = {
     stick: Direction
 }
 
-
-
-
-function load_position(target: Board) {
+function load_position(target: Board, shuffle = true) {
     const random_square = () => Math.floor(Math.random() * 64)
 
     pieces_on_board = []
@@ -86,6 +83,9 @@ function load_position(target: Board) {
         let sq2 = random_square()
         while (squares.includes(sq2)) {
             sq2 = random_square()
+        }
+        if (!shuffle) {
+            sq2 = target.get(pieces)!
         }
 
         if (DEBUG_END) {
@@ -140,8 +140,10 @@ export function _init() {
         frames: [],
         time: 0,
     }
-    load_position(fen_to_board('4k3/4b3/5pp1/3KP2p/1p5P/4B1P1/1P6/8 w - - 1 44'))
-    load_position(fen_to_board('4rk2/3q1p2/2pp1Ppp/p1p5/2P2bN1/1P2Q3/P4PPP/4RK2 w - - 2 28'))
+
+    load_position(fen_to_board(''))
+    //load_position(fen_to_board('4k3/4b3/5pp1/3KP2p/1p5P/4B1P1/1P6/8 w - - 1 44'))
+    //load_position(fen_to_board('4rk2/3q1p2/2pp1Ppp/p1p5/2P2bN1/1P2Q3/P4PPP/4RK2 w - - 2 28'))
     //load_position(fen_to_board('r6K/8/8/8/8/8/8/8 w - - 0 1'))
     //load_position(fen_to_board('8/8/8/3p4/3K4/4P3/8/8 w - - 0 1'))
     //load_position(fen_to_board('8/8/8/8/3K4/5N2/8/8 w - - 0 1'))
@@ -691,4 +693,27 @@ function build_board_from_pieces() {
 
 export function _cleanup() {
 
+}
+
+export type SimulApi =  {
+    reveal_solution: () => void
+    load_position: (fen: FEN) => void
+    shuffle_board: () => void
+}
+
+export function _api() {
+    
+    let loaded_fen: FEN = ''
+    return {
+        reveal_solution() {
+            load_position(fen_to_board(loaded_fen), false)
+        },
+        shuffle_board() {
+            load_position(fen_to_board(loaded_fen))
+        },
+        load_position: (fen: FEN) => {
+            loaded_fen = fen
+            load_position(fen_to_board(fen))
+        }
+    }
 }

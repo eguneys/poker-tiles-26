@@ -47,6 +47,8 @@ function _update(delta: number) {
     if (next_scene !== current_scene) {
         current_scene = next_scene
         current_scene._init()
+        // TODO fix
+        resolve_simul_api(simulate._api())
     }
 
     current_scene._update(delta)
@@ -76,11 +78,13 @@ function _cleanup() {
 }
 
 export type GameAPI = {
-
     cleanup: () => void
+    request_api: () => Promise<simulate.SimulApi>
 }
 
 let init_canvas: InitCanvas
+
+let resolve_simul_api: (value: simulate.SimulApi) => void
 
 export async function main(el: HTMLElement): Promise<GameAPI> {
 
@@ -98,6 +102,9 @@ export async function main(el: HTMLElement): Promise<GameAPI> {
         cleanup: () => {
             cleanup_loop()
             _cleanup()
+        },
+        request_api: () => {
+            return new Promise(resolve => resolve_simul_api = resolve)
         }
     }
 }
