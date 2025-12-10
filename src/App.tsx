@@ -1,5 +1,5 @@
-import { type JSX, lazy  } from 'solid-js'
-import { A, Route, Router } from '@solidjs/router'
+import { createEffect, createMemo, createSelector, createSignal, type JSX, lazy, Show  } from 'solid-js'
+import { A, Route, Router, useLocation, useNavigate } from '@solidjs/router'
 import { TheGameBoard } from './TheGameBoard';
 
 const Legal = lazy(() => import("./Legal"));
@@ -20,10 +20,13 @@ export default function App() {
 
 
 function Layout(props: { children?: JSX.Element }) {
+
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = createSignal(false)
+
     return (<>
         <div class="min-h-screen flex flex-col">
-            <Navbar/>
-            <main class="grow max-w-6xl mx-auto w-full px-4 py-8 lg:py-12">
+            <Navbar isMobileMenuOpen={isMobileMenuOpen()} setIsMobileMenuOpen={setIsMobileMenuOpen}/>
+            <main class="grow max-w-6xl mx-auto w-full px-4 py-8 lg:py-12"  onClick={() => isMobileMenuOpen() && setIsMobileMenuOpen(false)}>
                 {props.children}
             </main>
         </div>
@@ -104,9 +107,38 @@ const Home = () => {
     </>)
 }
 
-const Navbar = () => {
+export type Navigation = 'home' | 'about' | 'legal'
+
+const Navbar = (props: { isMobileMenuOpen: boolean, setIsMobileMenuOpen: (v: boolean) => void }) => {
 
     const dev = () => import.meta.env.DEV ? '.dev' : ''
+
+    const navigate = useNavigate()
+
+    const location = useLocation();
+
+    const pathname = createMemo(() => {
+        let res = location.pathname.split('/')[1]
+        if (res === '') {
+            return 'home'
+        }
+        return res
+    });
+
+    const isActive = createSelector(() => pathname())
+
+    const active_color = (path: Navigation) => isActive(path) ? 'bg-slate-800 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-indigo-400'
+
+    const home_color = createMemo(() => active_color('home'))
+    const about_color = createMemo(() =>active_color('about'))
+    const legal_color = createMemo(() =>active_color('legal'))
+
+    const active_link = (path: Navigation) => isActive(path) ? 'text-white' : ''
+
+    const navigateAndClose = (path: string) => {
+        navigate(path)
+        props.setIsMobileMenuOpen(false)
+    }
 
     return (<>
         <nav class="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50">
@@ -118,13 +150,47 @@ const Navbar = () => {
                     <A href="/" class="text-xl font-bold tracking-tight text-white">Mor Chess 3 {dev()}</A>
                 </div>
                 <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-400">
-                    <A href="/" class="text-white hover:text-indigo-400 transition-colors">Daily Puzzle</A>
-                    <A href="/about" class="hover:text-indigo-400 transition-colors">About</A>
+                    <A href="/" class={`${active_link('home')} hover:text-indigo-400 transition-colors`}>Daily Puzzle</A>
+                    <A href="/about" class={`${active_link('about')} hover:text-indigo-400 transition-colors`}>About</A>
                 </div>
-                <button title="TODO" class="md:hidden text-slate-300">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                {/* Mobile Menu Button */}
+                <button
+                    class="md:hidden text-slate-300 hover:text-white p-2"
+                    onClick={() => props.setIsMobileMenuOpen(!props.isMobileMenuOpen)}
+                >
+                    {props.isMobileMenuOpen ? (
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    ) : (
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    )}
                 </button>
             </div>
+                    {/* Mobile Menu Dropdown */}
+            <Show when={props.isMobileMenuOpen}>
+                <div class="md:hidden absolute top-16 left-0 w-full bg-slate-900 border-b border-slate-800 shadow-2xl animate-in slide-in-from-top-2 duration-200">
+                    <div class="flex flex-col p-4 space-y-2">
+                        <button
+                            onClick={() => navigateAndClose('/')}
+                            class={`text-left px-4 py-3 rounded-lg text-sm font-medium ${home_color()}`}
+                        >
+                            Daily Puzzle
+                        </button>
+                        <button
+                            onClick={() => navigateAndClose('/about')}
+                            class={`text-left px-4 py-3 rounded-lg text-sm font-medium ${about_color()}`}
+                        >
+                            About
+                        </button>
+                        <button
+                            onClick={() => navigateAndClose('legal')}
+                            class={`text-left px-4 py-3 rounded-lg text-sm font-medium ${legal_color()}`}
+                        >
+                            Legal
+                        </button>
+                    </div>
+                </div>
+            </Show>
+
         </nav>
     </>)
 }
