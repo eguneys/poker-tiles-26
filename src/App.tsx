@@ -117,12 +117,16 @@ const Home = () => {
 
                 <StatsExtra />
                 <div class="text-xs text-center text-slate-600 mt-8">
-                    © 2026 Mor Chess 3. All rights reserved. 
+                    © 2026 Mor Chess 3. All rights reserved.
                     <br/>
                     <div class="flex justify-center gap-x-2">
                         <A href="legal#privacy" class="link">Privacy Policy</A>
+                        •
                         <A href="legal#terms" class="link">Terms of Service</A>
+                        •
                         <A href="contact" class="link">Contact Us</A>
+                        •
+                        <A href="https://github.com/eguneys/poker-tiles-26" target="_blank" class="link">GitHub</A>
                     </div>
                     <br /> 
                     Designed with 💜.

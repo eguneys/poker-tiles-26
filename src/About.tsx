@@ -27,7 +27,10 @@ export default () => {
                 Built with WebGL with the help of ChatGPT and Google AI Studio.
             </p>
             <p class="text-slate-400 leading-relaxed">
-                Originally developed for JS13k Game Jam you can play at <A class="link" target="_blank" href="https://js13kgames.com/2025/games/mor-chess#play"> here</A>
+                Originally developed for JS13k Game Jam you can play at <A class="link external" target="_blank" href="https://js13kgames.com/2025/games/mor-chess#play"> here</A>
+            </p>
+            <p class="text-slate-400 leading-relaxed">
+              The Mor Chess 3 project is open source, and its source code is available on <A href="https://github.com/eguneys/poker-tiles-26" target="_blank" class="link external">GitHub</A>.
             </p>
         </div>
         
