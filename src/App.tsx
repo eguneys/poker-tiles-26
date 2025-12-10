@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSelector, createSignal, type JSX, lazy, Show  } from 'solid-js'
+import { createMemo, createSelector, createSignal, type JSX, lazy, Show  } from 'solid-js'
 import { A, Route, Router, useLocation, useNavigate } from '@solidjs/router'
 import { TheGameBoard } from './TheGameBoard';
 
