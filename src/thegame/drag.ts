@@ -39,6 +39,7 @@ export function DragHandler(el: HTMLCanvasElement) {
             is_up = undefined
             is_down = e
             is_just_down = e
+            is_hovering = e
             has_moved_after_last_down = false
         },
         on_up(e: XY) {

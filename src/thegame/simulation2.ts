@@ -166,8 +166,8 @@ export function _update(delta: number) {
 
     time += delta / 1000
 
-    cursor.follow.x.followTo(drag.is_hovering[0], { speed: 1 - 1e-8 })
-    cursor.follow.y.followTo(drag.is_hovering[1], { speed: 1 - 1e-8 })
+    cursor.follow.x.followTo(drag.is_hovering[0], { speed: 1 })
+    cursor.follow.y.followTo(drag.is_hovering[1], { speed: 1 })
 
     cursor.follow.x.update(delta / 1000)
     cursor.follow.y.update(delta / 1000)
@@ -185,6 +185,7 @@ export function _update(delta: number) {
 
     let can_drag = !is_game_over && endgame_timer === 0
     if (can_drag && drag.is_just_down) {
+        //console.log(drag.is_just_down, drag.is_hovering, cursor.xy)
         const cursor_sq = cursor.sq
         if (cursor_sq !== undefined) {
 
