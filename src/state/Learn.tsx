@@ -192,6 +192,11 @@ export function create_learn(_store: MorStore): Learn {
 
     let actions = {
         on_next() {
+
+            if (!state.can_next) {
+                return
+            }
+
             let module = active_module()
             if (!module) {
                 return
@@ -215,6 +220,13 @@ export function create_learn(_store: MorStore): Learn {
             })
         },
         on_reset() {
+
+            if (!state.can_reset) {
+                return
+            }
+
+
+
             let module = active_module()
             if (!module) {
                 return

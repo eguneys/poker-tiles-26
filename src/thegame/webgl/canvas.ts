@@ -22,6 +22,7 @@ export function Init_canvas(): InitCanvas {
 
     batch = new BatchRenderer(renderer, 16_384)
 
+    // TODO FIX initializing the canvas bounds before appending to DOM
     drag = DragHandler(canvas)
 
     return {

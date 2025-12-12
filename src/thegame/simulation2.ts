@@ -74,14 +74,6 @@ let c_board_fen: FEN
 
 function load_position(c_fen: FEN, t_fen: FEN, nb_steps: number) {
 
-    position_timer = 0
-
-    is_game_over = false
-    endgame_timer = 0
-    endgame_anim_channels.x.followTo(0)
-    endgame_anim_channels.y.followTo(0)
-    endgame_anim_channels.r.followTo(0)
-    grid_animation.frames = []
 
     steps = nb_steps * (grid_box.wh.x / 8)
 
@@ -91,6 +83,16 @@ function load_position(c_fen: FEN, t_fen: FEN, nb_steps: number) {
     if (c_board_fen === board_to_fen(current).split(' ')[0]) {
         return
     }
+
+    position_timer = 0
+    is_game_over = false
+    endgame_timer = 0
+    endgame_anim_channels.x.followTo(0)
+    endgame_anim_channels.y.followTo(0)
+    endgame_anim_channels.r.followTo(0)
+    grid_animation.frames = []
+
+
 
     c_board_fen = c_fen.split(' ')[0]
     pieces_on_board = []

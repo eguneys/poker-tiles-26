@@ -14,11 +14,12 @@ export function TouchMouse(el: HTMLElement, hooks: TouchMouseHooks) {
     return [e.clientX, e.clientY]
   }
 
+  let epsilon = 1
   const normalized = (e: PointerEvent): XY => {
     const [x, y] = eventPosition(e)
     return [
-      (x - bounds.left) / bounds.width,
-      (y - bounds.top) / bounds.height
+      (x - bounds.left) / (bounds.width + epsilon),
+      (y - bounds.top) / (bounds.height + epsilon)
     ]
   }
 
