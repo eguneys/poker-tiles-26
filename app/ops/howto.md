@@ -1,3 +1,6 @@
+## Service File Folder
+/etc/systemd/system/morchess.service
+
 ## First-Time Server Setup (Once)
 sudo useradd -r -s /bin/false morchess
 sudo mkdir -p /var/www/morchess-api/data
