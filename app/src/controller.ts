@@ -4,7 +4,7 @@ import { db } from "./db_init.ts";
 declare global {
   namespace Express {
     interface Request {
-      user_id?: string;
+      user_id?: UserDbId;
     }
   }
 }
@@ -17,6 +17,14 @@ class InvalidHashError extends Error {}
 export const router = Router()
 
 router.use(async (req, res, next) => {
+
+  let ip = req.ip
+  if (ip) {
+      await rateLimit(ip, 'ip_fast', 1, 10)
+      await rateLimit(ip, 'ip_hour', 60, 3600)
+  }
+
+
   let sessionId = req.cookies.morchess_session
   let userId: string | undefined
 
@@ -70,6 +78,10 @@ router.use(async (req, res, next) => {
 })
 
 router.post('/handle', async (req, res) => {
+
+    await rateLimit(req.user_id!, 'handle_fast', 1, 10)
+    await rateLimit(req.user_id!, 'handle_hour', 3, 3600)
+
     const { handle } = req.body
 
     if (!handle || handle.length > 24) {
@@ -98,7 +110,7 @@ router.post('/score', async (req, res) => {
     await rateLimit(req.user_id!, 'score_hour', 3, 3600)
 
     const { score, difficulty, hash } = req.body
-    const today = new Date().toISOString().slice(0, 10)
+    const today = getTodaysUTC()
 
 
     if (!verifyHash(score, difficulty, hash)) {
@@ -143,11 +155,10 @@ router.post('/score', async (req, res) => {
             Date.now()
         )
 
-        const todayUTC = today
-        const yearWeek = today
+        const thisWeek = getWeeksUTC()
 
-        invalidateCache(`daily:${todayUTC}`)
-        invalidateCache(`weekly:${yearWeek}`)
+        invalidateCache(`daily:${today}`)
+        invalidateCache(`weekly:${thisWeek}`)
 
 
         res.json({ ok: true })
@@ -156,67 +167,142 @@ router.post('/score', async (req, res) => {
     }
 })
 
-router.get('/daily', async (_, res) => {
-    const date = new Date().toISOString().slice(0, 10)
+
+router.get('/daily', async (req, res) => {
+
+    await rateLimit(req.user_id!, 'handle_fast', 1, 10)
+    await rateLimit(req.user_id!, 'handle_hour', 30, 3600)
+
+    const date = getTodaysUTC()
 
     const cacheKey = `daily:${date}`
 
-    const cached = getCache<DifficultyLeaderboard>(cacheKey)
+    const cached = getCache<Ranking[]>(cacheKey)
 
     if (cached) {
         return res.send(cached)
     }
 
-    const leaderboard = await computeDailyLeaderboard(date)
+    const leaderboard = await computeDailyLeaderboard(date, req.user_id!)
 
     setCache(cacheKey, leaderboard, 60_000)
+
+    res.send(leaderboard)
+})
+
+router.get('/weekly', async (req, res) => {
+    const date = getWeeksUTC()
+
+    const cacheKey = `weekly:${date}`
+
+    const cached = getCache<Ranking[]>(cacheKey)
+
+    if (cached) {
+        return res.send(cached)
+    }
+
+    const leaderboard = await computeWeeklyLeaderboard(date, req.user_id!)
+
+    setCache(cacheKey, leaderboard, 3 * 60_000)
+
+    res.send(leaderboard)
+})
+
+router.get('/monthly', async (req, res) => {
+    const date = getMonthsUTC()
+
+    const cacheKey = `monthly:${date}`
+
+    const cached = getCache<Ranking[]>(cacheKey)
+
+    if (cached) {
+        return res.send(cached)
+    }
+
+    const leaderboard = await computeWeeklyLeaderboard(date, req.user_id!)
+
+    setCache(cacheKey, leaderboard, 10 * 60_000)
+
     res.send(leaderboard)
 })
 
 
-async function computeDailyLeaderboard(date: string) {
+router.get('/yearly', async (req, res) => {
+    const date = getYearsUTC()
 
-    const rows = await db.prepare<string, { handle: string, score: number, created_at: number, difficulty: string }>(`
-        SELECT u.handle, d.score, d.created_at, d.difficulty
+    const cacheKey = `yearly:${date}`
+
+    const cached = getCache<Ranking[]>(cacheKey)
+
+    if (cached) {
+        return res.send(cached)
+    }
+
+    const leaderboard = await computeWeeklyLeaderboard(date, req.user_id!)
+
+    setCache(cacheKey, leaderboard, 30 * 60_000)
+
+    res.send(leaderboard)
+})
+
+const rows2leaderboard = (rows: LeaderboardRow[], tier: DifficultyTier, user_id: UserDbId) => {
+
+    let list = rows.filter(_ => _.difficulty === tier)
+    let you = rows.find(_ => _.user_id === user_id)
+
+    return {
+        list,
+        you
+    }
+}
+
+type LeaderboardRow = { user_id: UserDbId, handle: string, score: number, created_at: number, difficulty: string }
+async function computeDailyLeaderboard(date: string, user_id: UserDbId) {
+    const rows = await db.prepare<string, LeaderboardRow>(`
+        SELECT u.id as user_id, u.handle, d.score, d.created_at, d.difficulty
         FROM daily_scores d
         JOIN users u ON u.id = d.user_id
         WHERE d.date_utc = ?
+        AND u.handle IS NOT NULL
         ORDER BY d.score ASC
         LIMIT 100
     `).all(date)
 
     return {
-        a: rows.filter(r => r.difficulty === 'a'),
-        b: rows.filter(r => r.difficulty === 'b'),
-        c: rows.filter(r => r.difficulty === 'c')
+        a: rows2leaderboard(rows, 'a', user_id),
+        b: rows2leaderboard(rows, 'b', user_id),
+        c: rows2leaderboard(rows, 'c', user_id),
     }
 }
 
-router.get('/weekly', async (_, res) => {
-    const rows = await db.prepare<{}, { handle: string, difficulty: string, score: number, created_at: number }>(`
-        SELECT u.handle, d.difficulty,
+async function computeWeeklyLeaderboard(since: string, user_id: UserDbId) {
+    const rows = await db.prepare<string, LeaderboardRow>(`
+        SELECT u.id as user_id, u.handle, d.difficulty,
         AVG(d.score) as score,
         MIN(d.created_at) as created_at
         FROM daily_scores d
         JOIN users u ON u.id = d.user_id
-        WHERE d.date_utc >= date('now', '-7 days')
+        WHERE d.date_utc >= ?
+        AND u.handle IS NOT NULL
         GROUP BY u.id
         ORDER BY score ASC
         LIMIT 100;
-    `).all({})
+    `).all(since)
 
-    res.json({
-        a: rows.filter(r => r.difficulty === 'a'),
-        b: rows.filter(r => r.difficulty === 'b'),
-        c: rows.filter(r => r.difficulty === 'c')
-    })
-})
+    return {
+        a: rows2leaderboard(rows, 'a', user_id),
+        b: rows2leaderboard(rows, 'b', user_id),
+        c: rows2leaderboard(rows, 'c', user_id),
+    }
+}
 
 
 import crypto from 'crypto'
 import { rateLimit, RateLimitError } from "./rate_limit.ts";
 import { getCache, invalidateCache, setCache } from "./cache.ts";
-import { DifficultyLeaderboard } from "./types.ts";
+import { DifficultyLeaderboard, DifficultyTier, Ranking, UserDbId } from "./types.ts";
+import { getMonthsUTC, getTodaysUTC, getWeeksUTC, getYearsUTC } from "./dates.ts";
+import { getDefaultHighWaterMark } from "stream";
 
 function verifyHash(score: number, difficulty: string, hash: string) {
     const secret = 's3cr3t-s@lt'

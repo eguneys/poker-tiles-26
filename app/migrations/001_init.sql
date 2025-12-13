@@ -8,14 +8,14 @@ CREATE TABLE sessions (
 
 
 CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id TEXT PRIMARY KEY,
     handle TEXT UNIQUE,
     created_at INTEGER NOT NULL
 );
 
 CREATE TABLE daily_scores (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
+    user_id TEXT NOT NULL,
     date_utc TEXT NOT NULL,
     difficulty TEXT NOT NULL,
     score INTEGER NOT NULL,

@@ -1,4 +1,4 @@
-export type UserDbId = number
+export type UserDbId = string
 export type UserDb = {
     id: UserDbId
     handle: string | null
@@ -33,6 +33,18 @@ export type DailyScoreDb = {
 }
 
 
-export type DifficultyLeaderboard = {
-
+export type Ranking = {
+    user_id: UserDbId
+    rank: number
+    handle: string
+    score: number
+    created_at: Date
 }
+
+export type Leaderboard = {
+    nb_total: number
+    list: Ranking[]
+    you: Ranking | undefined
+}
+
+export type DifficultyLeaderboard = Record<DifficultyTier, Leaderboard>
