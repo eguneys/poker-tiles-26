@@ -109,7 +109,7 @@ const Home = () => {
                         •
                         <A href="https://buymeacoffee.com/eguneys" class="link">Support Us</A>
                         •
-                        <A href="https://github.com/eguneys/poker-tiles-26" target="_blank" class="link">GitHub</A>
+                        <A href="https://github.com/eguneys/morchess3" target="_blank" class="link">GitHub</A>
                     </div>
                     <br /> 
                     Designed with 💜.

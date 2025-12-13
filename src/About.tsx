@@ -21,7 +21,7 @@ export default () => {
             </h2>
             <p class="text-slate-400 leading-relaxed mb-6">
                 Mor Chess 3 is a minimalist puzzle game where you rearrange shuffled pieces back to their correct squares by analyzing who attacks whom. Sharpens your tactical vision with daily puzzles.
-                Let's you compete with your friends on time based challenges on public Leaderboards.
+                Let's you compete with the community on time based challenges on public Leaderboards.
             </p>
             <p class="text-slate-400 leading-relaxed">
                 Built with WebGL with the help of ChatGPT and Google AI Studio.
@@ -30,7 +30,7 @@ export default () => {
                 Originally developed for JS13k Game Jam you can play at <A class="link external" target="_blank" href="https://js13kgames.com/2025/games/mor-chess#play"> here</A>
             </p>
             <p class="text-slate-400 leading-relaxed">
-              The Mor Chess 3 project is open source, and its source code is available on <A href="https://github.com/eguneys/poker-tiles-26" target="_blank" class="link external">GitHub</A>.
+              The Mor Chess 3 project is open source, and its source code is available on <A href="https://github.com/eguneys/morchess3" target="_blank" class="link external">GitHub</A>.
             </p>
             <p class="text-slate-400 leading-relaxed">
               This project is a labor of love and runs without ads or premium features. If you enjoy the puzzles and want to help cover the server costs for the leaderboard, you can <A class="link" href="https://buymeacoffee.com/eguneys">support the developer here</A>.
@@ -47,7 +47,7 @@ export default () => {
                 <p class="text-sm text-slate-500">Compete for best time against your friends with public leaderboards.</p>
              </div>
              <div class="p-6 bg-slate-900 border border-slate-800 rounded-xl">
-                <h3 class="font-semibold text-white mb-2">Getting Started</h3>
+                <h3 class="font-semibold text-white mb-2">Learning Modules</h3>
                 <p class="text-sm text-slate-500">Complete a special set of puzzles with increasing difficulty to help you get started.</p>
              </div>
         </div>
