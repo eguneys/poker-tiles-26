@@ -339,10 +339,60 @@ const StatsExtra = () => {
 
 const LoadingLeaderboard = () => {
     return (<>
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <span class='text-slate-500'>Loading Leaderboards...</span>
-            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-xl flex flex-col shadow-sm overflow-hidden">
+                {/* Header Section */}
+                <div class="p-6 pb-0 flex flex-col gap-4 bg-slate-900 z-10 shadow-sm">
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <svg class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            Leaderboard
+                        </h3>
+                    </div>
+
+                    {/* Level 1 Tabs: Time Period */}
+                    <div class="flex bg-slate-950 p-1 rounded-lg">
+                        {Time_Periods.map(p => (
+                            <button
+                                class={`capitalize flex-1 py-1.5 text-xs font-medium rounded transition-all ${'text-slate-500 hover:text-slate-300 hover:bg-slate-800'}`}
+                            >
+                                {p}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Level 2 Tabs: Difficulty */}
+                    <div class="flex border-b border-slate-800 pb-0 gap-1">
+                        {Difficulty_Tiers.map(d => (
+                            <button
+                                class={`flex-1 text-xs font-semibold uppercase tracking-wider pb-2 transition-colors relative ${'text-slate-600 hover:text-slate-400'}`}
+                            >
+                                {difficulty_texts[d]}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Header Row for columns */}
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider pb-2 border-b border-slate-800 mt-2 px-4">
+                        <span class="w-6 text-center">#</span>
+                        <span class="flex-1 px-3">Player</span>
+                        <span>Distance Traveled</span>
+                    </div>
+                </div>
+
+                {/* Scrollable List */}
+                <div class="flex items-center justify-center overflow-y-auto h-64 space-y-0.5">
+                    <div class="flex items-center justify-between">
+                        <span class='text-slate-500'>Loading Leaderboards...</span>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-sm py-2 px-4">
+                    <div class="text-center font-bold text-indigo-400 text-xs">
+                        Loading Leaderboards...
+                    </div>
+                </div>
         </div>
     </>)
 }
@@ -394,7 +444,7 @@ const Leaderboard = () => {
         if (u === undefined) {
             return false
         }
-        return u.handle === undefined
+        return u.handle === null
     }
     const [inputHandle, setInputHandle] = createSignal('')
     const onSetHandle = set_leaderboard_handle
@@ -514,7 +564,7 @@ const Leaderboard = () => {
                                 <input
                                     type="text"
                                     value={inputHandle()}
-                                    onChange={(e) => setInputHandle(e.target.value)}
+                                    onKeyUp={(e) => setInputHandle((e.target as HTMLInputElement).value)}
                                     placeholder="Enter handle to join..."
                                     minlength={3}
                                     maxlength={8}

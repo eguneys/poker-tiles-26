@@ -1,11 +1,11 @@
 import { db } from './db_init.ts'
-import { RateLimitDb } from './types.ts'
+import { type RateLimitDb } from './types.ts'
 
 export class RateLimitError extends Error {}
 
 type RateLimit = RateLimitDb
 
-export async function rateLimit(
+async function rateLimitDb(
   userId: string,
   endpoint: string,
   limit: number,
@@ -45,4 +45,40 @@ export async function rateLimit(
      SET count = count + 1
      WHERE key = ?`,
   ).run(key)
+}
+
+
+const rateLimitCache = new Map<string, RateLimitDb>
+
+export async function rateLimit(
+  userId: string,
+  endpoint: string,
+  limit: number,
+  windowSeconds: number
+) {
+  const key = `${userId}:${endpoint}`
+  const now = Date.now()
+  const resetAt = new Date(now + windowSeconds * 1000).toISOString()
+
+  const row = rateLimitCache.get(key)
+
+
+  if (!row) {
+    let count = 1
+    rateLimitCache.set(key, { key, count, reset_at: resetAt })
+    return
+  }
+
+  if (new Date(row.reset_at).getTime() < now) {
+    row.count = 1
+    row.reset_at = resetAt
+
+    return
+  }
+
+  if (row.count >= limit) {
+    throw new RateLimitError()
+  }
+
+  row.count = row.count + 1
 }

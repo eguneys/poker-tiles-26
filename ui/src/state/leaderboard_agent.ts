@@ -22,6 +22,7 @@ const $ = async (path: string, opts?: RequestInit) => {
     const res = await fetch(API_ENDPOINT + path, { 
         ...opts,
 
+        credentials: 'include',
         signal: controller.signal
     })
     
@@ -62,6 +63,7 @@ export function create_agent(): Agent {
     return {
         async daily_leaderboard() {
             //return mock_daily_leaderboard
+            //await new Promise(resolve => setTimeout(resolve, 1000))
             return $('/daily')
         },
         async weekly_leaderboard() {

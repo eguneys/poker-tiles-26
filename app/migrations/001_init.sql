@@ -16,12 +16,11 @@ CREATE TABLE users (
 CREATE TABLE daily_scores (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id TEXT NOT NULL,
-    date_utc TEXT NOT NULL,
     difficulty TEXT NOT NULL,
     score INTEGER NOT NULL,
     created_at INTEGER NOT NULL,
 
-    UNIQUE(user_id, date_utc, difficulty),
+    UNIQUE(user_id, created_at, difficulty),
     FOREIGN KEY(user_id) REFERENCES users(id)
 );
 

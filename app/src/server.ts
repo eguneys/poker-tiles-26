@@ -6,12 +6,16 @@ import { inc, metrics } from "./metrics.ts";
 import { router } from "./controller.ts";
 import bodyParser from "body-parser";
 import { runMigrations } from "./migrations.ts";
+import cookieParser from 'cookie-parser'
+import cors from 'cors'
 
 
 let app = express()
 
 app.use(express.json())
 app.use(bodyParser.json());
+app.use(cookieParser());
+app.use(cors({ credentials: true, origin: true }));
 
 
 app.use((req, _, next) => {
@@ -34,15 +38,17 @@ app.get('/metrics', (req, res) => {
 app.use(router)
 
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  
+    if (err instanceof RateLimitError)
+        return res.status(429).send({ error: 'Too many requests' })
+
   log('error', 'unhandled_error', {
     path: req.path,
     method: req.method,
     message: err.message
   })
 
-  
-    if (err instanceof RateLimitError)
-        return res.status(429).send({ error: 'Too many requests' })
+
 
   res.status(500).send({
     error: 'Internal server error'

@@ -36,7 +36,7 @@ type Actions = {
 export type Puzzles = [State, Actions]
 
 
-export function create_puzzles(_store: MorStore): Puzzles {
+export function create_puzzles(store: MorStore): Puzzles {
 
     let daily_puzzle_set = createAsync(() => PuzzleUtils.daily_puzzle_set())
     let todays_date = createAsync(() => PuzzleUtils.todays_date())
@@ -133,6 +133,12 @@ export function create_puzzles(_store: MorStore): Puzzles {
             } else {
                 set_pstore('saved_daily_puzzle_set', selected_tier, 'stats', 'nb_revealed', nb_steps)
             }
+
+            let score = nb_steps
+
+            let [, {send_daily_score}] = store.leaderboards
+
+            send_daily_score(score, selected_tier)
         },
         set_solved() {
             let selected_tier = pstore.daily_selected_tier

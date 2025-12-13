@@ -17,7 +17,7 @@ export type SessionsDb = {
 export type RateLimitDb = {
     key: string
     count: number
-    reset_at: number
+    reset_at: string
 }
 
 export type DifficultyTier = 'a' | 'b' | 'c'
@@ -34,11 +34,10 @@ export type DailyScoreDb = {
 
 
 export type Ranking = {
-    user_id: UserDbId
     rank: number
     handle: string
     score: number
-    created_at: Date
+    created_at: number
 }
 
 export type Leaderboard = {

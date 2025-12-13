@@ -43,8 +43,8 @@ export function MorStoreProvider(props: { children: JSX.Element }) {
         }
     })
 
-    puzzles = create_puzzles(store)
     leaderboards = create_leaderboards(store)
+    puzzles = create_puzzles(store)
     learn = create_learn(store)
 
 

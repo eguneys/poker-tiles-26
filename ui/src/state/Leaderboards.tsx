@@ -85,16 +85,16 @@ export function create_leaderboards(_store: MorStore): Leaderboards {
 
     let state = {
         get daily() {
-            return daily_leaderboard()
+            return daily_leaderboard.latest
         },
         get weekly() {
-            return weekly_leaderboard()
+            return weekly_leaderboard.latest
         },
         get monthly() {
-            return monthly_leaderboard()
+            return monthly_leaderboard.latest
         },
         get yearly() {
-            return yearly_leaderboard()
+            return yearly_leaderboard.latest
         }
     }
 
@@ -103,7 +103,7 @@ export function create_leaderboards(_store: MorStore): Leaderboards {
         async set_leaderboard_handle(handle: string) {
             let res = await $agent.set_leaderboard_handle(handle)
 
-            fetch_daily_leaderboard()
+            set_fetch_daily_leaderboard()
             set_fetch_weekly_leaderboard(true)
             set_fetch_monthly_leaderboard(true)
             set_fetch_yearly_leaderboard(true)
@@ -113,7 +113,10 @@ export function create_leaderboards(_store: MorStore): Leaderboards {
         async send_daily_score(score: number, difficulty: DifficultyTier) {
             let res = await $agent.send_daily_score(score, difficulty)
 
-            fetch_daily_leaderboard()
+            set_fetch_daily_leaderboard()
+            set_fetch_weekly_leaderboard(true)
+            set_fetch_monthly_leaderboard(true)
+            set_fetch_yearly_leaderboard(true)
 
             return res
         },
