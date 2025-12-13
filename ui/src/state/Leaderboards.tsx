@@ -104,6 +104,9 @@ export function create_leaderboards(_store: MorStore): Leaderboards {
             let res = await $agent.set_leaderboard_handle(handle)
 
             fetch_daily_leaderboard()
+            set_fetch_weekly_leaderboard(true)
+            set_fetch_monthly_leaderboard(true)
+            set_fetch_yearly_leaderboard(true)
             return res
         },
 
